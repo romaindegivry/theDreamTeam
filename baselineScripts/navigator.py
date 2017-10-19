@@ -101,10 +101,21 @@ def distanceCheck(msg):
     print(msg.range) #for debugging
     range = msg.range #set range = recieved range
 
+def heightCheck(msg):
+    global height
+    height = msg.distance
+
+def bangBang(control,target, absTol):
+    global height
+    if height < target - absTol:
+        control.SetVel([0,0,0.5])
+    elif height > target + absTol:
+        control.SetVel([0,0,-0.5])
+    else:
+        control.SetVel([1.0,0,0])
+
 def main():
     rospy.init_node('navigator')   # make ros node
-    
-
 
     rate = rospy.Rate(20) # rate will update publisher at 20hz, higher than the 2hz minimum before tieouts occur
     stateManagerInstance = stateManager(rate) #create new statemanager
@@ -112,8 +123,8 @@ def main():
     #Subscriptions
     rospy.Subscriber("/mavros/state", State, stateManagerInstance.stateUpdate)  #get autopilot state including arm state, connection status and mode
     rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, distanceCheck)  #get current distance from ground 
-    global range #import global range variable
-    ###rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad, callback)  #subscribe to position messages
+    global range, height #import global range variable
+    rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad,heightCheck)  #subscribe to position messages
 
 
     #Publishers
