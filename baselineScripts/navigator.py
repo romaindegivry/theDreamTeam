@@ -15,35 +15,40 @@ from mavros_msgs.srv import *   #import for arm and flight mode setting
 
 from rosTools import * #velocity controlers + statemanagers
 
+global height, intergatedY
+integratedY=0
+height = 0
 def distanceCheck(msg):
     global range    #import global range
     print(msg.range) #for debugging
-    range = msg.distance #set range = recieved range
+    range = msg.range #set range = recieved range
 
 
 def heightCheck(msg):
     global height
-	global integratedY #import global Y drift variable
+    global integratedY #import global Y drift variable
     height = msg.distance
-	integratedY = msg.integrated_y
+    integratedY = msg.integrated_y
 
-def bangBang(control,target, absTol):
-    global height , integratedY
-	zvel = 0
-	xvel = 1.0
-	yvel = simpleGain(integratedY, 0.5)
+def bangBang(control,target, absTol,stateManagerInstance):
+    global heightx
+    global integratedY
+    zvel = 0
+    xvel = 0.3
+    yvel = simpleGain(integratedY, +10)
     if height < target - absTol:
         zvel = 0.5
-		xvel = 0.
+	xvel = 0.
     elif height > target + absTol:
         zvel = -0.5
     else:
-		pass
-	control.SetVel([xvel,yvel,zvel])
+	pass
+    control.setVel([xvel,yvel,zvel])
+    control.publishTargetPose(stateManagerInstance)
 
 def simpleGain(error,Gain=1):
-	return G*error
-	
+   return Gain*error
+
 def main():
     rospy.init_node('navigator')   # make ros node
 
@@ -52,8 +57,7 @@ def main():
 
     #Subscriptions
     rospy.Subscriber("/mavros/state", State, stateManagerInstance.stateUpdate)  #get autopilot state including arm state, connection status and mode
-	
-	global range, height #import global variables
+    global range, height, integratedY #import global variables
     rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, distanceCheck)  #get current distance from ground 
     rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad,heightCheck)  #subscribe to position messages
 
@@ -70,7 +74,7 @@ def main():
 
 
     while not rospy.is_shutdown():
-		bangBang(controller,1.5,0.2)
+	bangBang(controller,1.5,0.2,stateManagerInstance)
         stateManagerInstance.incrementLoop()
         rate.sleep()    #sleep at the set rate
         if stateManagerInstance.getLoopCount() > 100:   #need to send some position data before we can switch to offboard mode otherwise offboard is rejected

@@ -20,7 +20,6 @@ class velControl:
         self._targetVelY = 0
         self._targetVelZ = 0
 
-    
     def setVel(self, coordinates):
         self._targetVelX = float(coordinates[0])
         self._targetVelY = float(coordinates[1])
@@ -36,7 +35,6 @@ class velControl:
         self._setVelMsg.twist.linear.x = self._targetVelX
         self._setVelMsg.twist.linear.y = self._targetVelY
         self._setVelMsg.twist.linear.z = self._targetVelZ
-        
         self._attPub.publish(self._setVelMsg)
 
 class stateManager: #class for monitoring and changing state of the controller
