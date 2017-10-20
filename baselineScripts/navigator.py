@@ -18,21 +18,32 @@ from rosTools import * #velocity controlers + statemanagers
 def distanceCheck(msg):
     global range    #import global range
     print(msg.range) #for debugging
-    range = msg.range #set range = recieved range
+    range = msg.distance #set range = recieved range
+
 
 def heightCheck(msg):
     global height
+	global integratedY #import global Y drift variable
     height = msg.distance
+	integratedY = msg.integrated_y
 
 def bangBang(control,target, absTol):
-    global height
+    global height , integratedY
+	zvel = 0
+	xvel = 1.0
+	yvel = simpleGain(integratedY, 0.5)
     if height < target - absTol:
-        control.SetVel([0,0,0.5])
+        zvel = 0.5
+		xvel = 0.
     elif height > target + absTol:
-        control.SetVel([0,0,-0.5])
+        zvel = -0.5
     else:
-        control.SetVel([1.0,0,0])
+		pass
+	control.SetVel([xvel,yvel,zvel])
 
+def simpleGain(error,Gain=1):
+	return G*error
+	
 def main():
     rospy.init_node('navigator')   # make ros node
 
