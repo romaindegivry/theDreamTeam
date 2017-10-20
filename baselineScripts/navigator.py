@@ -41,8 +41,9 @@ def main():
 
     #Subscriptions
     rospy.Subscriber("/mavros/state", State, stateManagerInstance.stateUpdate)  #get autopilot state including arm state, connection status and mode
+	
+	global range, height #import global variables
     rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, distanceCheck)  #get current distance from ground 
-    global range, height #import global range variable
     rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad,heightCheck)  #subscribe to position messages
 
 
@@ -58,11 +59,7 @@ def main():
 
 
     while not rospy.is_shutdown():
-        if range < 10: 
-            controller.setVel([0,0,0.5])
-        else:
-            controller.setVel([0.2,0,0])
-        controller.publishTargetPose(stateManagerInstance)
+		bangBang(controller,1.5,0.2)
         stateManagerInstance.incrementLoop()
         rate.sleep()    #sleep at the set rate
         if stateManagerInstance.getLoopCount() > 100:   #need to send some position data before we can switch to offboard mode otherwise offboard is rejected
