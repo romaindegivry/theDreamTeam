@@ -15,7 +15,7 @@ from mavros_msgs.srv import *   #import for arm and flight mode setting
 
 from rosTools import * #velocity controlers + statemanagers
 
-global height, intergatedY
+global height, integratedY
 integratedY=0
 height = 0
 def distanceCheck(msg):
@@ -35,7 +35,7 @@ def bangBang(control,target, absTol,stateManagerInstance):
     global integratedY
     zvel = 0
     xvel = 0.3
-    yvel = simpleGain(integratedY, +10)
+    yvel = simpleGain(integratedY, -1)
     if height < target - absTol:
         zvel = 0.5
 	xvel = 0.
