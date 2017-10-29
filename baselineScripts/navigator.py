@@ -31,7 +31,7 @@ def heightCheck(msg):
     integratedY = msg.integrated_y
 
 def bangBang(control,target, absTol,stateManagerInstance):
-    global heightx
+    global height
     global integratedY
     zvel = 0
     xvel = 0.3
