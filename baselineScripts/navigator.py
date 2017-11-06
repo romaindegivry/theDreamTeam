@@ -15,9 +15,12 @@ from mavros_msgs.srv import *   #import for arm and flight mode setting
 
 from rosTools import * #velocity controlers + statemanagers
 
-global height, integratedY
-integratedY=0
+global height, integratedY, integratedX
+integratedX = 0
+integratedY = 0
 height = 0
+
+
 def distanceCheck(msg):
     global range    #import global range
     print(msg.range) #for debugging
@@ -26,28 +29,48 @@ def distanceCheck(msg):
 
 def heightCheck(msg):
     global height
-    global integratedY #import global Y drift variable
     height = msg.distance
-    integratedY = msg.integrated_y
-
-def bangBang(control,target, absTol,stateManagerInstance):
-    global height
+    
+def displacementCheck(msg):
     global integratedY
-    zvel = 0
-    xvel = 0.3
-    yvel = simpleGain(integratedY, -1)
-    if height < target - absTol:
+    global integratedX
+    
+    integratedY = msg.pose.position.y
+    integratedX = msg.pose.position.x
+    
+
+
+def bangBang(control,target, absTol, stateManagerInstance):
+
+    global height
+    global integratedX
+    global integratedY
+    
+    # X-vel Control
+    if integratedX < target[0] - absTol:
+        xvel = 0.1
+    elif integratedX > target[0] + absTol:
+        xvel = -0.1
+    else:
+        xvel = 0
+
+    # Z-vel Control
+    if height < target[2] - absTol:
         zvel = 0.5
-	xvel = 0.
-    elif height > target + absTol:
+    elif height > target[2] + absTol:
         zvel = -0.5
     else:
-	pass
+	zvel = 0
+
+    yvel = simpleGain(integratedY, -1)
+
     control.setVel([xvel,yvel,zvel])
     control.publishTargetPose(stateManagerInstance)
 
+
 def simpleGain(error,Gain=1):
    return Gain*error
+
 
 def main():
     rospy.init_node('navigator')   # make ros node
@@ -58,8 +81,10 @@ def main():
     #Subscriptions
     rospy.Subscriber("/mavros/state", State, stateManagerInstance.stateUpdate)  #get autopilot state including arm state, connection status and mode
     global range, height, integratedY #import global variables
-    rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, distanceCheck)  #get current distance from ground 
-    rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad,heightCheck)  #subscribe to position messages
+    rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, distanceCheck)  #get current distance from ground
+    rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad, heightCheck)  #subscribe to position messages
+    rospy.Subscriber("/mavros/local_position/pose", PoseStamped, displacementCheck)
+
 
 
     #Publishers
@@ -70,11 +95,9 @@ def main():
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
 
 
-
-
-
     while not rospy.is_shutdown():
-	bangBang(controller,1.5,0.2,stateManagerInstance)
+	bangBang(controller,[6,0,3],0.2,stateManagerInstance)
+	print('X: {}, Y: {}, Z: {}'.format(integratedX, integratedY, height))
         stateManagerInstance.incrementLoop()
         rate.sleep()    #sleep at the set rate
         if stateManagerInstance.getLoopCount() > 100:   #need to send some position data before we can switch to offboard mode otherwise offboard is rejected

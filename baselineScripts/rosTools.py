@@ -11,7 +11,6 @@ from geometry_msgs.msg import TwistStamped #used to set velocity messages
 from mavros_msgs.srv import *   #import for arm and flight mode setting
 
 
-
 class velControl:
     def __init__(self, attPub):  #attPub = attitude publisher
         self._attPub = attPub
@@ -26,7 +25,6 @@ class velControl:
         self._targetVelZ = float(coordinates[2])
         rospy.logwarn("Target velocity is \nx: {} \ny: {} \nz: {}".format(self._targetVelX,self._targetVelY, self._targetVelZ))
 
-
     def publishTargetPose(self, stateManagerInstance):
         self._setVelMsg.header.stamp = rospy.Time.now()    #construct message to publish with time, loop count and id
         self._setVelMsg.header.seq = stateManagerInstance.getLoopCount()
@@ -36,6 +34,7 @@ class velControl:
         self._setVelMsg.twist.linear.y = self._targetVelY
         self._setVelMsg.twist.linear.z = self._targetVelZ
         self._attPub.publish(self._setVelMsg)
+
 
 class stateManager: #class for monitoring and changing state of the controller
     def __init__(self, rate):
@@ -72,7 +71,6 @@ class stateManager: #class for monitoring and changing state of the controller
             arm(True)
         except rospy.ServiceException as e:   #except if failed
             print("Service arm failed with exception :%s"%e)
-
 
     def waitForPilotConnection(self):   #wait for connection to flight controller
         rospy.logwarn("Waiting for pilot connection")
