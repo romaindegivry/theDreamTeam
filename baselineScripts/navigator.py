@@ -55,7 +55,7 @@ def main():
     rate = rospy.Rate(20) # rate will update publisher at 20hz, higher than the 2hz minimum before tieouts occur
     stateManagerInstance = stateManager(rate) #create new statemanager
 
-    #Subscriptions plz
+    #Subscriptions change this shizzle
     rospy.Subscriber("/mavros/state", State, stateManagerInstance.stateUpdate)  #get autopilot state including arm state, connection status and mode
     global range, height, integratedY #import global variables
     rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, distanceCheck)  #get current distance from ground 
