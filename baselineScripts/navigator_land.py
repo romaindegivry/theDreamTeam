@@ -67,7 +67,7 @@ def phaseConversion(target_vel):
     
     if phase == 3:
         print('End State Achieved')
-        ros.sleep(10)
+        rospy.sleep(10)
         
     
     elif target_vel[0] == 0 and target_vel[2] == 0:
