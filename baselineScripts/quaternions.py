@@ -1,14 +1,13 @@
 # coding=utf-8
 from math import sin,cos,sqrt,pi
-import matplotlib.pyplot as plt
-
 
 #TODO: Consider replacing by better package: https://github.com/KieranWynn/pyquaternion
 
 
 class Quaternion:
     """
-    This class represents a quaternion
+    This class represents a quaternion with some operations
+
     """
     def __init__(self,s,vx,vy,vz):
         self.s = s
@@ -46,6 +45,7 @@ class Quaternion:
 
     def  norm(self):
         return sqrt(self.s*self.s+self.x*self.x+self.y*self.y+self.z*self.z)
+    #TODO: Include division as __rdiv__ and __div__
 
 #let us define a vector class compatible with quaternions
 
@@ -61,7 +61,7 @@ class Vector (Quaternion):
 
 
 
-#generates the quaternion for a rotaion around the axis given by vecor by an
+#generates the quaternion for a rotation around the axis given by vecor by an
 #angle alpha
 def rotationQuaternion(vector,alpha):
     s = sin(alpha/2.)
