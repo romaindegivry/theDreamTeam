@@ -90,55 +90,13 @@ def phaseConversion(target_vel):
             phase += 1
             hover_count = 0
             hover_phase = 0
-        
+                    
     else:
         pass
 
 
 # -- setVel Algorithm --
 
-
-# Simple bangBang Algorithm
-def bangBang(target_disp, absTol):
-
-    global height
-    global integratedX
-    global integratedY
-    global phase
-    
-    
-    # X-vel Control
-    if integratedX < target_disp[0] - absTol:
-        xvel = 0.3
-    elif integratedX > target_disp[0] + absTol:
-        xvel = -0.3
-    else:
-        xvel = 0.0
-
-
-    # Z-vel Control
-    if height < target_disp[2] - absTol:
-        zvel = 0.5
-    elif height > target_disp[2] + absTol:
-        zvel = -0.5
-    else:
-    	zvel = 0.0
-    
-
-    yvel = simpleGain(integratedY, -1)
-    
-    target_vel = [xvel,yvel,zvel]
-    
-    print('X: {}, Y: {}, Z: {}'.format(integratedX, integratedY, height))
-    
-    
-    return target_vel
-
-
-# Gain for Drift Correction
-def simpleGain(error, gain=1):
-
-    return gain * error
 
 
 # -- Main --
@@ -163,7 +121,7 @@ def main():
     
 
     # Publishers
-    velPub = rospy.Publisher("/mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=2) ###Change to atti
+    velPub = rospy.Publisher("/mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=2) ###Change to atti 
     
     
     # Controller
@@ -171,25 +129,28 @@ def main():
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     
     # Instantiate PID Controller
-    pid_z = PID_controller(20,1,0.1,0.1)
+    pid_x = PID_controller(20,0.1,0,0, maxVel = 0.5)
+    pid_y = PID_controller(20,0.5,0,0)
+    pid_z = PID_controller(20,0.5,0,0)
+    
     
 
     # Control Loop
-    while not rospy.is_shutdown():
-    
-        target_pose = getTargetPose() # target displacement
-        target_vel = bangBang(target_pose,0.15) # get target velocity
-        controller.setVel(target_vel)
-        phaseConversion(target_vel)
-        
+    while not rospy.is_shutdown():      
         
         controller.publishTargetPose(stateManagerInstance)
         stateManagerInstance.incrementLoop()
         rate.sleep()
 
         if stateManagerInstance.getLoopCount() > 100:   #need to send some position data before we can switch to offboard mode otherwise offboard is rejected
-            global height
-            print(pid_z(height,target_pose[2]))
+            
+            global integratedX, integratedY, height
+            print('Position: X = {}, Y = {}, Z = {}'.format(integratedX, integratedY, height))
+            target_pose = getTargetPose() # target displacement
+            target_vel = [pid_x(integratedX, target_pose[0]), pid_y(integratedY, target_pose[1]), pid_z(height, target_pose[2])] # get target velocity
+            controller.setVel(target_vel)
+            phaseConversion(target_vel)
+            
             stateManagerInstance.offboardRequest()  #request control from external computer
             stateManagerInstance.armRequest()   #arming must take place after offboard is requested
             
