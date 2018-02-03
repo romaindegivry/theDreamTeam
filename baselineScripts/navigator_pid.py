@@ -6,14 +6,6 @@ import math
 import sys
 import time
 
-from mavros_msgs.msg import OpticalFlowRad #import optical flow message structure
-from mavros_msgs.msg import State  #import state message structure
-from sensor_msgs.msg import Range  #import range message structure
-from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import Pose #import position message structures
-from geometry_msgs.msg import TwistStamped #used to set velocity messages
-from mavros_msgs.srv import *   #import for arm and flight mode setting
-
 from rosTools import * #velocity controlers + statemanagers
 
 from class_pid import PID_controller
