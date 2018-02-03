@@ -12,18 +12,20 @@ from mavros_msgs.srv import *   #import for arm and flight mode setting
 
 
 class velControl:
-    def __init__(self, attPub):  #attPub = attitude publisher
+    def __init__(self, attPub,verbose=True):  #attPub = attitude publisher
         self._attPub = attPub
         self._setVelMsg = TwistStamped()
         self._targetVelX = 0
         self._targetVelY = 0
         self._targetVelZ = 0
+        self.verbose = verbose
 
     def setVel(self, coordinates):
         self._targetVelX = float(coordinates[0])
         self._targetVelY = float(coordinates[1])
         self._targetVelZ = float(coordinates[2])
-        rospy.logwarn("Target velocity is \nx: {} \ny: {} \nz: {}".format(self._targetVelX,self._targetVelY, self._targetVelZ))
+        if self.verbose
+        	rospy.logwarn("Target velocity is \nx: {} \ny: {} \nz: {}".format(self._targetVelX,self._targetVelY, self._targetVelZ))
 
     def publishTargetPose(self, stateManagerInstance):
         self._setVelMsg.header.stamp = rospy.Time.now()    #construct message to publish with time, loop count and id
@@ -37,12 +39,13 @@ class velControl:
 
 
 class stateManager: #class for monitoring and changing state of the controller
-    def __init__(self, rate):
+    def __init__(self, rate,verbose = True):
         self._rate = rate
         self._loopCount = 0
         self._isConnected = 0
         self._isArmed = 0
         self._mode = None
+        self.verbose = verbose
     
     def incrementLoop(self):
         self._loopCount = self._loopCount + 1
@@ -54,7 +57,8 @@ class stateManager: #class for monitoring and changing state of the controller
         self._isConnected = msg.connected
         self._isArmed = msg.armed
         self._mode = msg.mode
-        rospy.logwarn("Connected is {}, armed is {}, mode is {} ".format(self._isConnected, self._isArmed, self._mode)) #some status info
+        if self.verbose = verbose
+        	rospy.logwarn("Connected is {}, armed is {}, mode is {} ".format(self._isConnected, self._isArmed, self._mode)) #some status info
 
     def armRequest(self):
         rospy.wait_for_service('/mavros/set_mode')
