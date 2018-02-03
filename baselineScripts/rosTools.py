@@ -81,3 +81,10 @@ class stateManager: #class for monitoring and changing state of the controller
             self._rate.sleep
         rospy.logwarn("ROS shutdown")
         return False
+def isClose(x,y,tol = 0.1):
+    """
+    This function is inteded to check velocities are similar,
+    the tolerance (tol) default value is set as 0.1 [m/s].
+    """
+    return abs(x-y) < tol
+
