@@ -9,4 +9,4 @@ gnome-terminal -e './rosLaunchDrone.sh'
 sleep 10s
 echo "Launch Navigator"
 cd ~/catkin_ws/src/l3drone/scripts/theDreamTeam/baselineScripts
-#gnome-terminal -e 'python navigator.py | tee navigator_log.txt & disown'
+gnome-terminal -e 'python navigator_pid.py |cat > bash_scripts.txt | tee navigator_log.txt & disown'

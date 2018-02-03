@@ -18,13 +18,19 @@ from rosTools import * #velocity controlers + statemanagers
 
 from class_pid import PID_controller
 
+
+#global variables for the state of the node
+global nodeState
+nodeState = {'rate' : 20}
+
+#global variables to track the stet of the aircraft
 global height, integratedY, integratedX
 
 height = 0
 integratedX = 0
 integratedY = 0
 
-
+#global variables for the state of the controller
 global phase, target_pose
 
 phase = 0 # Flight Phase: takeoff (0), cruise (1), landing (2)
@@ -73,15 +79,17 @@ def getTargetPose():
 
 def phaseConversion(target_vel):
     
-    global phase, hover_phase, hover_count, target_pose 
+    global phase, hover_phase, hover_count, target_pose ,integratedX ,height
     
     if phase == 3:
         print('End State Achieved')
         rospy.sleep(10)
         
     
-    elif target_vel[0] == 0 and target_vel[2] == 0:
-        print('Entering Hover Phase.')
+    elif isClose(target_pose[phase][0],integratedX,tol=0.1) and isClose(target_pose[phase][2],height,tol=0.1):
+    
+    	if hover_count == 0:
+        	print('Entering Hover Phase.')
         hover_phase = 1
         hover_count += 1
         
@@ -105,30 +113,38 @@ def phaseConversion(target_vel):
 def main():
 
     global height, integratedX, integratedY # import global variables
+    global nodeState #state of the node
     
     
     rospy.init_node('navigator')   # make ros node
-
-    rate = rospy.Rate(20) # rate will update publisher at 20hz, higher than the 2hz minimum before tieouts occur
+    
+	# rate will update publisher at 20hz, higher than the 2hz minimum before tieouts occur
+    rate = rospy.Rate(nodeState['rate']) 
+    
     stateManagerInstance = stateManager(rate) # create new statemanager
 
 
     # Subscriptions
-    rospy.Subscriber("/mavros/state", State, stateManagerInstance.stateUpdate)  #get autopilot state including arm state, connection status and mode
-    rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, heightCheck)  #get current distance from ground
-    rospy.Subscriber("/mavros/local_position/pose", PoseStamped, displacementCheck) #subscribe to position messages
-    # rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad, heightCheck)
+    #get autopilot state including arm state, connection status and mode
+    rospy.Subscriber("/mavros/state", State, stateManagerInstance.stateUpdate)  
+    #get current distance from ground
+    rospy.Subscriber("/mavros/distance_sensor/hrlv_ez4_pub", Range, heightCheck)  
+    #subscribe to position messages
+    rospy.Subscriber("/mavros/local_position/pose", PoseStamped, displacementCheck) 
+    #Optical flow sensor link
+    """rospy.Subscriber("/mavros/px4flow/raw/optical_flow_rad", OpticalFlowRad, heightCheck)"""
     
 
     # Publishers
-    velPub = rospy.Publisher("/mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=2) ###Change to atti 
-    
+    velPub = rospy.Publisher("/mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=2) 
     
     # Controller
-    controller = velControl(velPub) #create new controller class and pass in publisher and state manager
+    #create new controller class and pass in publisher and state manager
+    controller = velControl(velPub)
+    
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     
-    # Instantiate PID Controller
+    # Instantiate PID Controller with weights
     pid_x = PID_controller(20,0.1,0,0, maxVel = 0.5)
     pid_y = PID_controller(20,0.5,0,0)
     pid_z = PID_controller(20,0.5,0,0)
@@ -142,14 +158,19 @@ def main():
         stateManagerInstance.incrementLoop()
         rate.sleep()
 
-        if stateManagerInstance.getLoopCount() > 100:   #need to send some position data before we can switch to offboard mode otherwise offboard is rejected
+        if stateManagerInstance.getLoopCount() > 100:   
+        	#need to send some position data before we can switch 
+        	#to offboard mode otherwise offboard is rejected
             
             global integratedX, integratedY, height
             print('Position: X = {}, Y = {}, Z = {}'.format(integratedX, integratedY, height))
             target_pose = getTargetPose() # target displacement
-            target_vel = [pid_x(integratedX, target_pose[0]), pid_y(integratedY, target_pose[1]), pid_z(height, target_pose[2])] # get target velocity
-            controller.setVel(target_vel)
-            phaseConversion(target_vel)
+            target_vel = [pid_x(integratedX, target_pose[0]), # get target velocity
+            			  pid_y(integratedY, target_pose[1]), 
+            			  pid_z(height, target_pose[2])] 
+            			  
+            controller.setVel(target_vel) #send input [vx,vy,vz]
+            phaseConversion(target_vel)	  #check phase state
             
             stateManagerInstance.offboardRequest()  #request control from external computer
             stateManagerInstance.armRequest()   #arming must take place after offboard is requested
