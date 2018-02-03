@@ -5,6 +5,7 @@ import time
 from mavros_msgs.msg import OpticalFlowRad #import optical flow message structure
 from mavros_msgs.msg import State  #import state message structure
 from sensor_msgs.msg import Range  #import range message structure
+from sensor_msgs.msg import Imu
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose #import position message structures
 from geometry_msgs.msg import TwistStamped #used to set velocity messages
