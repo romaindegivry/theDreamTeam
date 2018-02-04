@@ -25,7 +25,7 @@ class velControl:
         self._targetVelX = float(coordinates[0])
         self._targetVelY = float(coordinates[1])
         self._targetVelZ = float(coordinates[2])
-        if self.verbose
+        if self.verbose:
         	rospy.logwarn("Target velocity is \nx: {} \ny: {} \nz: {}".format(self._targetVelX,self._targetVelY, self._targetVelZ))
 
     def publishTargetPose(self, stateManagerInstance):
@@ -58,7 +58,7 @@ class stateManager: #class for monitoring and changing state of the controller
         self._isConnected = msg.connected
         self._isArmed = msg.armed
         self._mode = msg.mode
-        if self.verbose = verbose
+        if self.verbose:
         	rospy.logwarn("Connected is {}, armed is {}, mode is {} ".format(self._isConnected, self._isArmed, self._mode)) #some status info
 
     def armRequest(self):

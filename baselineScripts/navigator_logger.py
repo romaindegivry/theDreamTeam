@@ -6,25 +6,18 @@ import math
 import sys
 import time
 
-from mavros_msgs.msg import OpticalFlowRad #import optical flow message structure
-from mavros_msgs.msg import State  #import state message structure
-from sensor_msgs.msg import Range  #import range message structure
-from sensor_msgs.msg import Imu
-from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import Pose #import position message structures
-from geometry_msgs.msg import TwistStamped #used to set velocity messages
-from mavros_msgs.srv import *   #import for arm and flight mode setting
-
 from rosTools import * #velocity controlers + statemanagers
 
 from class_pid import PID_controller
 
+import csv
 
 #global variables for the state of the node
 global nodeState
 nodeState = {'rate' : 20}
 
 #global variables to track the state of the aircraft
+# from local_position/pose
 global height, pos, quat
 
 height = 0
@@ -32,12 +25,22 @@ pos = [0.0, 0.0, 0.0]
 quat = [0.0, 0.0, 0.0, 0.0]
 
 #global variables for velocities of aircraft
+# from local_position/velocity
 global linear_vel, ang_vel
 
 linear_vel = [0.0, 0.0, 0.0]
 ang_vel = [0.0, 0.0, 0.0]
 
+#Timestamps for topics
+global time_sonar, time_pose, time_vel, time_imu
+
+time_sonar = 0
+time_pose = 0
+time_vel = 0
+time_imu = 0
+
 #global variables for acceleration from IMU
+# from imu/data
 global linear_acc
 
 linear_acc = [0.0, 0.0, 0.0]
@@ -67,7 +70,10 @@ hover_count = 0
 def heightCheck(msg):
 
     global height    #import global range
+    global time_sonar
+    
     height = msg.range #set range = recieved range
+    time_sonar = msg.header.stamp
 
 
 # Callback for pose
@@ -75,6 +81,7 @@ def displacementCheck(msg):
     
     global pos
     global quat
+    global time_pose
     
     pos[0] = msg.pose.position.x
     pos[1] = msg.pose.position.y
@@ -83,7 +90,9 @@ def displacementCheck(msg):
     quat[0] = msg.pose.orientation.x    
     quat[1] = msg.pose.orientation.y
     quat[2] = msg.pose.orientation.z
-    quat[3] = msg.pose.orientation.w    
+    quat[3] = msg.pose.orientation.w
+    
+    time_pose = msg.header.stamp   
     
 
 # Callback for velocity
@@ -91,6 +100,7 @@ def velCheck(msg):
 
     global linear_vel
     global ang_vel
+    global time_vel
     
     linear_vel[0] = msg.twist.linear.x
     linear_vel[1] = msg.twist.linear.y
@@ -100,15 +110,20 @@ def velCheck(msg):
     ang_vel[1] = msg.twist.angular.y
     ang_vel[2] = msg.twist.angular.z
     
+    time_vel = msg.header.stamp
+    
     
 # Callback for acceleration
 def imuCheck(msg):
 
     global linear_acc
+    global time_imu
     
     linear_acc[0] = msg.linear_acceleration.x
     linear_acc[1] = msg.linear_acceleration.y
     linear_acc[2] = msg.linear_acceleration.z
+    
+    time_imu = msg.header.stamp
     
 
 
@@ -156,6 +171,21 @@ def phaseConversion(target_vel):
 
 
 def main():
+
+    # CSV File Format
+    fieldnames = ['time','-', 'h_sonar', '-',
+                  'x', 'y', 'z', '-',
+                  'x_dot', 'y_dot', 'z_dot', '-',
+                  'x_dot2', 'y_dot2', 'z_dot2', '-',
+                  'quat_x', 'quat_y', 'quat_z', 'quat_w', '-',
+                  'ang_x_dot', 'ang_y_dot', 'ang_z_dot']
+                 
+    csvfile = open('logging.csv', 'w')    
+    writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+    writer.writeheader()
+                 
+
+
 
     global nodeState #state of the node
     
@@ -232,6 +262,19 @@ def main():
                    linear_acc[0], linear_acc[1], linear_acc[2])
                    )
             
+            
+            writerdict = {'h_sonar': height,
+                 'x': pos[0], 'y': pos[1], 'z': pos[2],
+                 'x_dot': linear_vel[0], 'y_dot': linear_vel[1], 'z_dot': linear_vel[2] ,
+                 'x_dot2': linear_acc[0], 'y_dot2': linear_acc[1], 'z_dot2': linear_acc[2],
+                 'quat_x': quat[0], 'quat_y': quat[1], 'quat_z': quat[2], 'quat_w': quat[3],
+                 'ang_x_dot': ang_vel[0], 'ang_y_dot': ang_vel[1], 'ang_z_dot': ang_vel[2],
+                 'time': time_imu}
+            
+            writer.writerow(writerdict)
+            
+            
+            
             target_pose = getTargetPose() # target displacement
             target_vel = [pid_x(pos[0], target_pose[0]), # get target velocity
             			  pid_y(pos[1], target_pose[1]), 
@@ -242,8 +285,12 @@ def main():
             
             stateManagerInstance.offboardRequest()  #request control from external computer
             stateManagerInstance.armRequest()   #arming must take place after offboard is requested
-            
-            
+    
+    if rospy.is_shutdown():
+        print('IN LOOP!!')
+        csvfile.close()
+    
+       
     rospy.spin()    #keeps python from exiting until this node is stopped
 
 
