@@ -146,7 +146,7 @@ def phaseConversion(target_vel):
         rospy.signal_shutdown("Ended node because the drone has landed")
         
         
-    elif isClose(target_pose[phase][2],pos[2],tol=0.1):
+    elif isClose(target_pose[phase][2],height,tol=0.1):
         print ('debug: phase' ,phase)
     	if hover_count == 0:
         	print('Entering Hover Phase.')
