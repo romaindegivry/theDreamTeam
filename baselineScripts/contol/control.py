@@ -21,7 +21,7 @@ for step in steps:
 	#log time
 
 	#takeoff
-	os.system('python control_logger.py {}'.format(step))
+	sub.call('python control_logger.py {}'.format(step))
 
 	#kill all gazebo/ros services
 	n=25
