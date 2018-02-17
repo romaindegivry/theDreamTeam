@@ -11,11 +11,9 @@ from rosTools import * #velocity controlers + statemanagers
 from class_pid import PID_controller
 
 import csv
-
+print("##########################START############################")
 if __name__ == "__main__":
-    TARGET = sys.argv[1]
-    TARGET = map(float, TARGET.strip('[]').split(','))
-    print(TARGET)
+    TARGET = [float(sys.argv[1]),float(sys.argv[2]),float(sys.argv[3])]
 #global variables for the state of the node
 global nodeState
 nodeState = {'rate' : 20}
@@ -149,14 +147,14 @@ def phaseConversion(target_vel):
         
         
     elif isClose(target_pose[phase][2],pos[2],tol=0.1):
-        print 'debug: done here'
+        print ('debug: phase' ,phase)
     	if hover_count == 0:
         	print('Entering Hover Phase.')
         	
         hover_phase = 1
         hover_count += 1
         print('debug: hover: count {}'.format(hover_count))
-        if hover_count == 5:
+        if hover_count == 20:
             print('Switching Phase {} to Phase {}'.format(phase,phase+1))
             phase += 1
             hover_count = 0
@@ -233,9 +231,9 @@ def main():
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     
     # Instantiate PID Controller with weights
-    pid_x = PID_controller(nodeState['rate'],-0.5,0.01,0)
-    pid_y = PID_controller(nodeState['rate'],-0.5,0.01,0)
-    pid_z = PID_controller(nodeState['rate'],-0.5,0.01,0)
+    pid_x = PID_controller(nodeState['rate'],-0.5,-0.3,0,maxVel=0.5)
+    pid_y = PID_controller(nodeState['rate'],-0.5,-0.5,0)
+    pid_z = PID_controller(nodeState['rate'],-0.5,-0.3,0)
     
     
 
@@ -258,7 +256,7 @@ def main():
             
             
             
-            print('Position: X = {}, Y = {}, Z = {}'.format(pos[0], pos[1], height))
+            print('debug Position: X = {}, Y = {}, Z = {}'.format(pos[0], pos[1], height))
             
             print('Linear Velocity: X = {}, Y = {}, Z = {}'.format(
                    linear_vel[0],linear_vel[1],linear_vel[2])

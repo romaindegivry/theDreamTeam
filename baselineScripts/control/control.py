@@ -6,13 +6,13 @@ import math
 import sys
 import time
 
-steps = [[1,0,0],[0,1,0],[0,0,1]]
+steps = [[0.5,0,0],[0,0.5,0],[0,0,0.5]]
 
 for step in steps:
 	#start gazebo/ros service
 	proc = sub.Popen('bash ../../bash_scripts/run_gazebo.sh',shell=True)
 	print('Done')
-	time.sleep(1) #wait a second for gazebo to load
+	time.sleep(30) #wait a second for gazebo to load
 
 	#when target  altitude reached (ie 1m) hold position
 
@@ -20,9 +20,11 @@ for step in steps:
 	#log time
 
 	#takeoff
-	print('started logger')
-	sub.call('python /home/arl/catkin_ws/src/l3drone/scripts/theDreamTeam/baselineScripts/control/control_logger.py {}'.format(step))
-
+	print('debug started logger')
+	print(step)
+	print("python control_logger.py  {} {} {}".format(*step))
+	
+	sub.call('python control_logger.py {} {} {}'.format(*step),shell=True)
 	#kill all gazebo/ros services
 	n=25
 	while n>0:
