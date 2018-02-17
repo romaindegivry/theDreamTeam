@@ -13,9 +13,9 @@ from class_pid import PID_controller
 import csv
 
 if __name__ == "__main__":
-	TARGET = sys.argv[1]
-	TARGET = map(float, TARGET.strip('[]').split(','))
-
+    TARGET = sys.argv[1]
+    TARGET = map(float, TARGET.strip('[]').split(','))
+    print(TARGET)
 #global variables for the state of the node
 global nodeState
 nodeState = {'rate' : 20}
@@ -55,8 +55,7 @@ global phase, target_pose
 
 phase = 0 # Flight Phase: takeoff (0), cruise (1), landing (2)
 
-target_pose = [[0.0,0.0,1.5],
-               TARGET] # End Target position of various flight phase, (meter)
+target_pose = [[0.0,0.0,1.5],TARGET] # End Target position of various flight phase, (meter)
 
 
 global hover_phase, hover_count
@@ -148,9 +147,9 @@ def phaseConversion(target_vel):
         rospy.sleep(10)
         rospy.signal_shutdown("Ended node because the drone has landed")
         
-    
-    elif isClose(target_pose[phase][0],pos[0],tol=0.1):
-    
+        
+    elif isClose(target_pose[phase][0],pos[0],tol=0.05) and isClose(target_pose[phase][2],pos[2],tol=0.05):
+        print 'debug: done here'
     	if hover_count == 0:
         	print('Entering Hover Phase.')
         	
@@ -163,10 +162,11 @@ def phaseConversion(target_vel):
             hover_count = 0
             hover_phase = 0
                     
-    else:
-        if step_time == 20*100:
+    elif phase == 1:
+        if step_time == 20*20:
         	phase = 3
         step_time += 1
+        print("Simulation done at {} %".format(step_time/400.*100))
         	
 
 
@@ -197,7 +197,8 @@ def main():
 
 
     global nodeState #state of the node
-    
+    global step_time
+    step_time = 0
     
     rospy.init_node('navigator',disable_signals=True)   # make ros node
     
@@ -232,9 +233,9 @@ def main():
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     
     # Instantiate PID Controller with weights
-    pid_x = PID_controller(nodeState['rate'],-0.1,0,0, maxVel = 0.5)
-    pid_y = PID_controller(nodeState['rate'],-0.5,0,0)
-    pid_z = PID_controller(nodeState['rate'],-0.5,0,0)
+    pid_x = PID_controller(nodeState['rate'],-0.1,0,0, maxVel = 0.1)
+    pid_y = PID_controller(nodeState['rate'],-0.2,0,0, maxVel = 0.1)
+    pid_z = PID_controller(nodeState['rate'],-0.2,0,0, maxVel = 0.1)
     
     
 
@@ -254,7 +255,8 @@ def main():
             global linear_acc
             global time_sonar, time_pose, time_vel, time_imu
             global phase
-            global step_time
+            
+            
             
             print('Position: X = {}, Y = {}, Z = {}'.format(pos[0], pos[1], height))
             
@@ -276,13 +278,13 @@ def main():
             
             
             target_pose = getTargetPose() # target displacement
-            
-           	if phase == 1:
-           		targetVel = target_pose
-           	
-            target_vel = [pid_x(pos[0], target_pose[0]), # get target velocity
-            			  pid_y(pos[1], target_pose[1]), 
-            			  pid_z(height, target_pose[2])]
+            print('debug',target_pose)          
+            if phase == 1:
+           		target_vel = target_pose
+            else:
+                target_vel = [pid_x(pos[0], target_pose[0]), # get target velocity
+                			  pid_y(pos[1], target_pose[1]), 
+                			  pid_z(height, target_pose[2])]
             			  
             writerdict = {'h_sonar': height,
                  'x': pos[0], 'y': pos[1], 'z': pos[2],
@@ -299,7 +301,7 @@ def main():
             controller.setVel(target_vel) #send input [vx,vy,vz]
             phaseConversion(target_vel)	  #check phase state, may shudown the state
             
-			if rospy.is_shutdown():
+            if rospy.is_shutdown():
 				break
 				print('IN LOOP!!')
 				csvfile.close()

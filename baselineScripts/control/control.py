@@ -2,7 +2,6 @@
 
 import subprocess as sub
 import os
-import rospy
 import math
 import sys
 import time
@@ -21,7 +20,8 @@ for step in steps:
 	#log time
 
 	#takeoff
-	sub.call('python control_logger.py {}'.format(step))
+	print('started logger')
+	sub.call('python /home/arl/catkin_ws/src/l3drone/scripts/theDreamTeam/baselineScripts/control/control_logger.py {}'.format(step))
 
 	#kill all gazebo/ros services
 	n=25
@@ -29,7 +29,6 @@ for step in steps:
 		n -= 1 
 		print('Kill in {}s'.format(n))
 		time.sleep(1)
-	rospy.signal_shutdown("Killed control.py node because process ended")
 	proc.terminate()
 	proc.kill()
 	sub.call('rosnode kill --all',shell=True)
