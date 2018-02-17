@@ -148,15 +148,15 @@ def phaseConversion(target_vel):
         rospy.signal_shutdown("Ended node because the drone has landed")
         
         
-    elif isClose(target_pose[phase][0],pos[0],tol=0.05) and isClose(target_pose[phase][2],pos[2],tol=0.05):
+    elif isClose(target_pose[phase][2],pos[2],tol=0.1):
         print 'debug: done here'
     	if hover_count == 0:
         	print('Entering Hover Phase.')
         	
         hover_phase = 1
         hover_count += 1
-        
-        if hover_count == 20:
+        print('debug: hover: count {}'.format(hover_count))
+        if hover_count == 5:
             print('Switching Phase {} to Phase {}'.format(phase,phase+1))
             phase += 1
             hover_count = 0
@@ -233,9 +233,9 @@ def main():
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     
     # Instantiate PID Controller with weights
-    pid_x = PID_controller(nodeState['rate'],-0.1,0,0, maxVel = 0.1)
-    pid_y = PID_controller(nodeState['rate'],-0.2,0,0, maxVel = 0.1)
-    pid_z = PID_controller(nodeState['rate'],-0.2,0,0, maxVel = 0.1)
+    pid_x = PID_controller(nodeState['rate'],-0.5,0.01,0)
+    pid_y = PID_controller(nodeState['rate'],-0.5,0.01,0)
+    pid_z = PID_controller(nodeState['rate'],-0.5,0.01,0)
     
     
 
