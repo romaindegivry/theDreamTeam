@@ -173,14 +173,16 @@ def phaseConversion(target_vel):
 def main():
 
     # CSV File Format
-    fieldnames = ['time_sonar','-', 'h_sonar', '-', '-',
+    fieldnames = ['phase', '-', '-',
+                  'time_sonar','-', 'h_sonar', '-', '-',
                   'time_pose', '-', 'x', 'y', 'z', '-',
                   'quat_x', 'quat_y', 'quat_z', 'quat_w', '-', '-',
                   'time_vel', '-', 'x_dot', 'y_dot', 'z_dot', '-',
                   'ang_x_dot', 'ang_y_dot', 'ang_z_dot', '-','-',
-                  'time_imu', 'x_dot2', 'y_dot2', 'z_dot2']
+                  'time_imu', 'x_dot2', 'y_dot2', 'z_dot2','-','-',
+                  'in_x_dot', 'in_y_dot', 'in_z_dot']
                  
-    csvfile = open('logging.csv', 'w')    
+    csvfile = open('logging_state.csv', 'w')    
     writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
     writer.writeheader()
                  
@@ -223,9 +225,9 @@ def main():
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     
     # Instantiate PID Controller with weights
-    pid_x = PID_controller(nodeState['rate'],0.1,0,0, maxVel = 0.5)
-    pid_y = PID_controller(nodeState['rate'],0.5,0,0)
-    pid_z = PID_controller(nodeState['rate'],0.5,0,0)
+    pid_x = PID_controller(nodeState['rate'],-0.1,0,0, maxVel = 0.5)
+    pid_y = PID_controller(nodeState['rate'],-0.5,0,0)
+    pid_z = PID_controller(nodeState['rate'],-0.5,0,0)
     
     
 
@@ -244,6 +246,7 @@ def main():
             global ang_vel, linear_vel
             global linear_acc
             global time_sonar, time_pose, time_vel, time_imu
+            global phase
             
             print('Position: X = {}, Y = {}, Z = {}'.format(pos[0], pos[1], height))
             
@@ -264,22 +267,22 @@ def main():
                    )
             
             
+            target_pose = getTargetPose() # target displacement
+            target_vel = [pid_x(pos[0], target_pose[0]), # get target velocity
+            			  pid_y(pos[1], target_pose[1]), 
+            			  pid_z(height, target_pose[2])]
+            			  
             writerdict = {'h_sonar': height,
                  'x': pos[0], 'y': pos[1], 'z': pos[2],
                  'x_dot': linear_vel[0], 'y_dot': linear_vel[1], 'z_dot': linear_vel[2] ,
                  'x_dot2': linear_acc[0], 'y_dot2': linear_acc[1], 'z_dot2': linear_acc[2],
                  'quat_x': quat[0], 'quat_y': quat[1], 'quat_z': quat[2], 'quat_w': quat[3],
                  'ang_x_dot': ang_vel[0], 'ang_y_dot': ang_vel[1], 'ang_z_dot': ang_vel[2],
-                 'time_sonar': time_sonar, 'time_pose': time_pose, 'time_vel': time_vel, 'time_imu': time_imu}
+                 'time_sonar': time_sonar, 'time_pose': time_pose, 'time_vel': time_vel, 'time_imu': time_imu,
+                 'in_x_dot': target_vel[0], 'in_y_dot': target_vel[1], 'in_z_dot': target_vel[2],
+                 'phase': phase}
             
             writer.writerow(writerdict)
-            
-            
-            
-            target_pose = getTargetPose() # target displacement
-            target_vel = [pid_x(pos[0], target_pose[0]), # get target velocity
-            			  pid_y(pos[1], target_pose[1]), 
-            			  pid_z(height, target_pose[2])]
             			  
             controller.setVel(target_vel) #send input [vx,vy,vz]
             phaseConversion(target_vel)	  #check phase state

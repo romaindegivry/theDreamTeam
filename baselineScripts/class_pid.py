@@ -33,7 +33,7 @@ class PID_controller(object):
     def __call__(self, pose, target_pose):
     
         # Error
-        err_pose = target_pose - pose      
+        err_pose = pose - target_pose
         
         # Update Integral Error
         self.err_accul += err_pose * self._dt
