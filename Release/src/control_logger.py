@@ -10,7 +10,7 @@ from rosTools import * #velocity controlers + statemanagers
 
 from class_pid import PID_controller
 
-
+import csv
 print("##########################START############################")
 if __name__ == "__main__":
     TARGET = [float(sys.argv[1]),float(sys.argv[2]),float(sys.argv[3])]
