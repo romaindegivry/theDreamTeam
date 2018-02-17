@@ -173,12 +173,12 @@ def phaseConversion(target_vel):
 def main():
 
     # CSV File Format
-    fieldnames = ['time','-', 'h_sonar', '-',
-                  'x', 'y', 'z', '-',
-                  'x_dot', 'y_dot', 'z_dot', '-',
-                  'x_dot2', 'y_dot2', 'z_dot2', '-',
-                  'quat_x', 'quat_y', 'quat_z', 'quat_w', '-',
-                  'ang_x_dot', 'ang_y_dot', 'ang_z_dot']
+    fieldnames = ['time_sonar','-', 'h_sonar', '-', '-',
+                  'time_pose', '-', 'x', 'y', 'z', '-',
+                  'quat_x', 'quat_y', 'quat_z', 'quat_w', '-', '-',
+                  'time_vel', '-', 'x_dot', 'y_dot', 'z_dot', '-',
+                  'ang_x_dot', 'ang_y_dot', 'ang_z_dot', '-','-',
+                  'time_imu', 'x_dot2', 'y_dot2', 'z_dot2']
                  
     csvfile = open('logging.csv', 'w')    
     writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
@@ -243,6 +243,7 @@ def main():
             global pos, quat, height
             global ang_vel, linear_vel
             global linear_acc
+            global time_sonar, time_pose, time_vel, time_imu
             
             print('Position: X = {}, Y = {}, Z = {}'.format(pos[0], pos[1], height))
             
@@ -269,7 +270,7 @@ def main():
                  'x_dot2': linear_acc[0], 'y_dot2': linear_acc[1], 'z_dot2': linear_acc[2],
                  'quat_x': quat[0], 'quat_y': quat[1], 'quat_z': quat[2], 'quat_w': quat[3],
                  'ang_x_dot': ang_vel[0], 'ang_y_dot': ang_vel[1], 'ang_z_dot': ang_vel[2],
-                 'time': time_imu}
+                 'time_sonar': time_sonar, 'time_pose': time_pose, 'time_vel': time_vel, 'time_imu': time_imu}
             
             writer.writerow(writerdict)
             
