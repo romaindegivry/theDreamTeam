@@ -1,0 +1,264 @@
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+No logs will be taken
+signal handlers for rospy disabled
