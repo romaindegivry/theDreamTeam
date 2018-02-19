@@ -46,8 +46,35 @@ global droneState
 droneState = {'pos'         :   np.array([0.,0.,0.]),#initialize postion
               'quaternion'  :   np.array([0.,0.,0.,0.]),#initialize attitude
               'velLinear'   :   np.array([0.,0.,0.]),#initialize velocity
-              'velAngular'  :   np.array([0.,0.,0.])}    #initialize angular velocity
+              'velAngular'  :   np.array([0.,0.,0.]),
+              'height'      :   0.}    #initialize angular velocity
 
+fieldnames = ['phase',
+              'time_sonar',  
+              'h_sonar',    
+              'time_pose',   
+              'x', 
+              'y', 
+              'z',  
+              'quat_x', 
+              'quat_y', 
+              'quat_z', 
+              'quat_w',    
+              'time_vel',   
+              'x_dot', 
+              'y_dot', 
+              'z_dot',  
+              'ang_x_dot', 
+              'ang_y_dot', 
+              'ang_z_dot',   
+              'time_imu', 
+              'x_dot2', 
+              'y_dot2', 
+              'z_dot2',  
+              'in_x_dot', 
+              'in_y_dot', 
+              'in_z_dot']
+                 
 #initializing time
 global clockState
 clockState = {'sonar'       :   0.,
@@ -58,7 +85,7 @@ clockState = {'sonar'       :   0.,
 #initialize flight state
 global nodeState
 nodeState = {'rate'    :    20      ,#20Hz sampling rate
-             'logMode' :    False    ,#logging the flight data
+             'logMode' :    True    ,#logging the flight data
              'logFile' :    '../out/flightLog{}.log',#log output path
              'mode'    :    'Exam'  }#Flight mode
               
@@ -187,12 +214,19 @@ def main(logger):
     #Initialize the mission manager:
     manager = helpers.MissionManager(lambda _: rospy.signal_shutdown("Mission End"))
     
-    PID = PID_controller(nodeState['rate'],k_p = [-0.04,-0.04,-0.04],k_i = [-0.01,-0.01,-0.01],maxVel = 0.5,minVel = 0.0)
+    PID = PID_controller(nodeState['rate'],k_p = [-1,-0.4,-1],k_i = [-1e-3,-0.05,-0.001],k_d = [-0.2,0,0],maxVel = 0.2,minVel = 0.0)
     
+    start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)
+    flight = helpers.FlightManager('ramp',1.5,np.array([10.0,0.,1.5]),**nodeState)
+    landing = helpers.LandingManager('land',[10.,0,0.1],**nodeState)
     
-    flight = helpers.FlightManager('ramp',1.5,np.array([0.0,0.,1.5]),**nodeState)
+    start.setController(PID)#give some PIDs to the people!
     flight.setController(PID)
+    landing.setController(PID)
     manager.addSegment(flight)
+    manager.addSegment(landing)
+    manager.addSegment(start)
+    manager.initialSegment('takeoff')
     
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     logger.debug("Started mission routine - entering main loop")
@@ -213,11 +247,18 @@ def main(logger):
             ctrl = manager.controller()
             ctrl.update(droneState,clockState,manager.phase().target)
             
+            print('V',manager.controller()())
             controller.setVel(manager.controller()()) #send input [vx,vy,vz]
 
-            #update general state
+            #update general drone state
             helpers.updateState(droneState,sensorState,clockState)
             #log system state
+            
+            if nodeState['logMode']:
+                row = helpers.logDict(manager.phase().name, 
+                              droneState,clockState,nodeState,sensorState,manager.controller()())
+                writer.writerow(row)
+            
             
             #writer.writerow(sensorState)
             stateManagerInstance.offboardRequest()  #request control from external computer
@@ -239,6 +280,7 @@ def main(logger):
      #perform the cleanup
     if csvfile != None: #close log file
         csvfile.close()
+        del writer
         
     logger.debug("cleanup complete, process is ready to shutdown")
     
