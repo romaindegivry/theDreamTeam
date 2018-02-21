@@ -102,7 +102,7 @@ class takeOffManager(PhaseManager): #for taking off
             self.count += 1
             
 
-        if self.count > kwargs['rate']*10: #wait one second
+        if self.count > kwargs['rate']*1: #wait one second
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'ramp'

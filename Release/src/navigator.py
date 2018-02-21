@@ -108,7 +108,7 @@ def heightCheck(msg):
     """
     global clockState, sensorState
     sensorState['height'] = msg.range #set range = recieved range
-    clockState['sonar'] = msg.header.stamp
+    clockState['sonar'] = msg.header.stamp.to_sec() 
 
 def displacementCheck(msg):
     """
@@ -127,7 +127,7 @@ def displacementCheck(msg):
                                 msg.pose.orientation.z,
                                 msg.pose.orientation.w])
     #get the time of the clock
-    clockState['pose'] = msg.header.stamp
+    clockState['pose'] = msg.header.stamp.to_sec() 
 
 def velCheck(msg):
     """
@@ -144,7 +144,8 @@ def velCheck(msg):
                                  msg.twist.angular.y,
                                  msg.twist.angular.z])
     #update clock time
-    clockState['vel'] = msg.header.stamp
+    clockState['vel']= msg.header.stamp.to_sec() 
+ 
     
 def imuCheck(msg):
 
@@ -154,7 +155,7 @@ def imuCheck(msg):
                                 msg.linear_acceleration.y,
                                 msg.linear_acceleration.z])
                                
-    clockState['IMU'] = msg.header.stamp
+    clockState['IMU'] = msg.header.stamp.to_sec() 
     
 
 #main program
@@ -214,14 +215,14 @@ def main(logger):
     #Initialize the mission manager:
     manager = helpers.MissionManager(lambda _: rospy.signal_shutdown("Mission End"))
     
-    PID = PID_controller(nodeState['rate'],k_p = [-1,-0.4,-1],k_i = [-1e-3,-0.05,-0.001],k_d = [-0.2,0,0],maxVel = 0.2,minVel = 0.0)
-    takeoffPID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-5],maxVel = 0.5,minVel = 0.0)
+    PID = PID_controller(nodeState['rate'],k_p = [-1,-0.4,-1],k_i = [0,-0.05,-0.001],k_d = [-0.2,0,0],maxVel = 0.5,minVel = 0.0)
+    takeoffPID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-4],k_i = [0],k_d = [-0.2,0,0],maxVel = 0.5,minVel = 0.0)
     
     start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)
-    flight = helpers.FlightManager('ramp',1.5,np.array([10.0,0.,1.5]),**nodeState)
-    landing = helpers.LandingManager('land',[10.,0,0.1],**nodeState)
+    flight = helpers.FlightManager('ramp',1.5,np.array([6.0,0.,1.5]),**nodeState)
+    landing = helpers.LandingManager('land',[6.0,0,0.1],**nodeState)
     
-    start.setController(takeoffPID)#give some PIDs to the people!
+    start.setController(PID)#give some PIDs to the people!
     flight.setController(PID)
     landing.setController(PID)
     
@@ -243,6 +244,7 @@ def main(logger):
         if stateManagerInstance.getLoopCount() > 100:
             #Apply calibration
             helpers.addDicts(sensorState,initialSensorState)
+            helpers.addDicts(clockState,initialclockState)
             
             #generate new phase
             manager.update(droneState,clockState,**nodeState)
@@ -272,6 +274,7 @@ def main(logger):
         elif stateManagerInstance.getLoopCount() == 100:
             logger.info("Calibrating sensors")
             initialSensorState = helpers.negateDict(sensorState)
+            initialclockState = helpers.negateDict(clockState)
             PID.reset(clockState)#reset the PID
             logger.info("Releasing control to mission state manager")
             time.sleep(1)
