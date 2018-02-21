@@ -215,21 +215,25 @@ def main(logger):
     manager = helpers.MissionManager(lambda _: rospy.signal_shutdown("Mission End"))
     
     PID = PID_controller(nodeState['rate'],k_p = [-1,-0.4,-1],k_i = [-1e-3,-0.05,-0.001],k_d = [-0.2,0,0],maxVel = 0.2,minVel = 0.0)
+    takeoffPID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-5],maxVel = 0.5,minVel = 0.0)
     
     start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)
     flight = helpers.FlightManager('ramp',1.5,np.array([10.0,0.,1.5]),**nodeState)
     landing = helpers.LandingManager('land',[10.,0,0.1],**nodeState)
     
-    start.setController(PID)#give some PIDs to the people!
+    start.setController(takeoffPID)#give some PIDs to the people!
     flight.setController(PID)
     landing.setController(PID)
+    
     manager.addSegment(flight)
     manager.addSegment(landing)
     manager.addSegment(start)
+    
     manager.initialSegment('takeoff')
     
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller
     logger.debug("Started mission routine - entering main loop")
+    
     while not rospy.is_shutdown():
         controller.publishTargetPose(stateManagerInstance)
         stateManagerInstance.incrementLoop()

@@ -100,7 +100,9 @@ class takeOffManager(PhaseManager): #for taking off
         #if we are steady around the target wait
         if all(np.abs(droneState['pos'] -self.target) < 0.1):
             self.count += 1
-        if self.count > kwargs['rate']*1: #wait one second
+            
+
+        if self.count > kwargs['rate']*10: #wait one second
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'ramp'
@@ -171,7 +173,6 @@ class MissionManager:
 def updateState(droneState,sensorState,clockState):
     #add sensor fusion here
     droneState['pos'] = sensorState['linearPose']
-    droneState['pos'][2] =sensorState['height']
     droneState['height'] =sensorState['height']
     droneState['quaternion'] = sensorState['quatPose']
     droneState['velLinear'] = sensorState['linearVel']
