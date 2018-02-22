@@ -24,9 +24,6 @@ The node's cofiguration parameters are held in another dictionnary
 """
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)#setting up the logs
-fh = logging.FileHandler('log_filename.txt')
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -85,7 +82,7 @@ clockState = {'sonar'       :   0.,
 #initialize flight state
 global nodeState
 nodeState = {'rate'    :    20      ,#20Hz sampling rate
-             'logMode' :    True    ,#logging the flight data
+             'logMode' :    False    ,#logging the flight data
              'logFile' :    '../out/flightLog{}.log',#log output path
              'mode'    :    'Exam'  }#Flight mode
               
@@ -215,7 +212,7 @@ def main(logger):
     #Initialize the mission manager:
     manager = helpers.MissionManager(lambda _: rospy.signal_shutdown("Mission End"))
 
-    PID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-3],k_i = [0,-0.01,0],k_d = [-0.02,-0.02,0],maxVel = 0.5,minVel = 0.0)
+    PID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-3],k_i = [0,-0.01,0],k_d = [-0.02,-0.02,0],maxVel = 0.4,minVel = 0.0)
 
     start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)
     tuning = helpers.tuneManager('tune',[0.,0.,1.5],**nodeState)
@@ -252,16 +249,16 @@ def main(logger):
         if stateManagerInstance.getLoopCount() > 100:
             #Apply calibration
             helpers.addDicts(sensorState,initialSensorState)
-            helpers.addDicts(clockState,initialclockState)
+            #helpers.addDicts(clockState,initialclockState)
             
             #generate new phase
             manager.update(droneState,clockState,**nodeState)
-            print(manager.phase().name)
+
             #generate control input
             ctrl = manager.controller()
             ctrl.update(droneState,clockState,manager.phase().target)
             
-            print('V',manager.controller()())
+
             controller.setVel(manager.controller()()) #send input [vx,vy,vz]
 
             #update general drone state

@@ -64,7 +64,7 @@ class FlightManager(PhaseManager):
         if self.count == 0 and self.name == 'ramp':
             self.controller.minVel = 0.2
             self.count += 1
-            print('DEBUG : setting minVel to 0.2',self.target)
+
             
         if not self.heightMem == None:
             gradient = -self.heightMem + droneState['height']
@@ -73,17 +73,17 @@ class FlightManager(PhaseManager):
             self.heightMem = droneState['height']
             return 0
 
-        print('gradient',gradient)
+
 
         
         if gradient < 0.3 and not self.onRamp:#detect the ramp
-            print('DEBUG : detected ramp')
+
             self.onRamp = True
             
         if self.name == 'fly':
             self.controller.minVel = 0.
             self.onRamp = False
-            print('DEBUG : in fly',self.target)
+
         
         if not self.onDrop and self.onRamp and gradient > 0.4:# must be smaller than the tolerance
             self.controller.minVel = 0.
@@ -92,7 +92,7 @@ class FlightManager(PhaseManager):
             self.target[2] = 1.5
             self.controller.reset(clockState)
             self.onDrop = True
-            print('DEBUG : detected drop',self.target)
+
 
         
         if all(np.abs(droneState['pos'] - self.target) < self.tol) and all(np.abs(droneState['velLinear']<0.2)):
@@ -100,7 +100,7 @@ class FlightManager(PhaseManager):
         
         #if hover has been achieved for 1 second, land
         if not self.onDrop and self.count > kwargs['rate']*1:
-            print('phase must be changed because cout >20')
+
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'land'
@@ -137,7 +137,7 @@ class takeOffManager(PhaseManager): #for taking off
         self.status = True
         
     def update(self,droneState,clockState,**kwargs):
-        print('updating', self.count)
+
         #if we are steady around the target wait
 
         if droneState['pos'][2] > 1.45: #wait one second
@@ -183,7 +183,7 @@ class tuneManager(PhaseManager):
             #get the freqencies
             freq1 = getMaxFreq(group1,**kwargs)
             freq2 = getMaxFreq(group2,**kwargs)
-            print(freq1,freq2)
+
             if abs(freq1 - freq2) < freq2*0.1:
                 #average the values
                 freq = (freq1 + freq2)/2.
@@ -195,7 +195,7 @@ class tuneManager(PhaseManager):
                 self.controller.k_p[2] *= 0.25
                 self.controller.k_d[2] = -0.01
                 self.controller.k_i[2] = -0.01
-                print('debug: no gains set',self.nTunes)
+
             
             #pass the controller back
             self.controller.reset(clockState)
@@ -242,12 +242,12 @@ class MissionManager:
         if not self.segments[self.currentState].status: #change phase
             #phase change logic goes here
             if phase.newPhase == None:
-                print('No phase to asign')
+                pass
             else:
                 name = phase.newPhase
                 self.segments[name].status = True 
                 self.currentState = name
-                print('Changing phase')
+
             
         else: 
             status = phase.update(droneState,clockState,**kwargs)#update the phase 

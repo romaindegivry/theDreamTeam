@@ -43,7 +43,7 @@ class PID_controller(object):
         #change x command depending on z error
         if abs(self.err_pose[2]) > 0.5:
             set_V[0]=self.minVel
-            print(set_V)
+
         
         if np.any(np.abs(set_V) < self.minVel):
             for i,item in enumerate(set_V):
@@ -70,7 +70,7 @@ class PID_controller(object):
         
         # Error
         self.err_pose = pos - target
-        print('error',self.err_pose)
+
         # Update Integral Error
         self.err_accul += self.err_pose * self._dt
         
