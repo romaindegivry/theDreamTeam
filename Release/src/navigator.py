@@ -9,9 +9,9 @@ import csv
 import logging
 
 #import (local)
-from rosTools import * #velocity controlers + statemanagers
-from class_pid import PID_controller
-import helpers
+from dep.rosTools import * #velocity controlers + statemanagers
+from dep.class_pid import PID_controller
+import dep.helpers as helpers
 
 #import (3rd party)
 import rospy
@@ -215,8 +215,12 @@ def main(logger):
     #Initialize the mission manager:
     manager = helpers.MissionManager(lambda _: rospy.signal_shutdown("Mission End"))
     
-    PID = PID_controller(nodeState['rate'],k_p = [-1,-0.4,-1],k_i = [0,-0.05,-0.001],k_d = [-0.2,0,0],maxVel = 0.5,minVel = 0.0)
-    takeoffPID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-4],k_i = [0],k_d = [-0.2,0,0],maxVel = 0.5,minVel = 0.0)
+    Kp = -2.4
+    Kd = -0.6075
+    Ki = -2.3704
+    
+    PID = PID_controller(nodeState['rate'],k_p = [Kp,Kp,Kp],k_i = [0,Ki,Ki],k_d = [Kd,Kd,Kd],maxVel = 0.5,minVel = 0.0)
+    takeoffPID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-4],k_i = [0],k_d = [-0.2531,-0.3125,-0.3125],maxVel = 0.5,minVel = 0.0)
     
     start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)
     flight = helpers.FlightManager('ramp',1.5,np.array([6.0,0.,1.5]),**nodeState)

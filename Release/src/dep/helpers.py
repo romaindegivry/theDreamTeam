@@ -170,6 +170,12 @@ class MissionManager:
     def check(self):
         assert(self.segments[self.currentState].status)
 
+
+class StateUpdate:
+    def __init__(self):
+        
+
+
 def updateState(droneState,sensorState,clockState):
     #add sensor fusion here
     droneState['pos'] = sensorState['linearPose']
