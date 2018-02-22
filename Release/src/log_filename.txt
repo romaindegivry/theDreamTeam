@@ -98,3 +98,31 @@ signal handlers for rospy disabled
 Begun main loop
 Begun logging position data
 signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+Begun logging position data
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+Begun logging position data
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+Begun logging position data
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+Begun logging position data
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+Begun logging position data
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+Begun logging position data
+signal handlers for rospy disabled
+0 arguments processed
+Begun main loop
+Begun logging position data
+signal handlers for rospy disabled

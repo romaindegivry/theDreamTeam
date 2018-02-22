@@ -56,26 +56,29 @@ class FlightManager(PhaseManager):
         self.status = False
         self.onRamp = False
         self.onDrop = False
-        self.rampHeight = 0
+        self.heightMem = None
         
     def update(self,droneState,clockState,**kwargs):
         #if we are steady around the target wait
-        rampHeight = abs(droneState['pos'][2] - droneState['height'])
-        print('updating',rampHeight)
+        rampHeight = (droneState['pos'][2] - droneState['height'])
+        if not self.heightMem == None:
+            gradient = -self.heightMem + droneState['height']
+            self.heightMem = droneState['height']
+        else:
+            self.heightMem = droneState['height']
+            return 0
+
+        print('gradient',gradient)
 
         
-        if rampHeight > 0.35 and not self.onRamp:#detect the ramp
+        if gradient < -0.3 and not self.onRamp:#detect the ramp
             print('DEBUG : detected ramp')
             self.onRamp = True
             
         if self.name == 'fly':
             self.onRamp = False
-
-        if self.onRamp and self.rampHeight < rampHeight :#update the ramp height
-            print('updating rampHeight')
-            self.rampHeight = rampHeight
         
-        if not self.onDrop and self.onRamp and rampHeight < 0.15 and self.rampHeight*0.8>rampHeight:# must be smaller than the tolerance
+        if not self.onDrop and self.onRamp and gradient > 0.4:# must be smaller than the tolerance
             self.target = droneState['pos']
             self.target[1] = 0.
             self.target[2] = 1.5
@@ -129,11 +132,11 @@ class takeOffManager(PhaseManager): #for taking off
         print('updating', self.count)
         #if we are steady around the target wait
         
-        if all(np.abs(droneState['pos'] -self.target) < 0.1) and all(np.abs(droneState['velLinear']<0.1)):
+        if all(np.abs(droneState['pos'] -self.target) < 0.2) and all(np.abs(droneState['velLinear']<0.1)):
             self.count += 1
             
 
-        if self.count >kwargs['rate']*1/2: #wait one second
+        if self.count>1: #wait one second
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'tune'
@@ -166,15 +169,7 @@ class safeMode(PhaseManager): #for safemode
         self.target = [0,0,0]
         self.newPhase = None
     def update(self,droneState,clockState,**kwargs):
-        print(droneState)
-        if droneState['pos'][2]>1: #count cycles above 1m
-            self.count += 1
-        else:
-            self.controller.reset(droneState,clockState,[0,0,0])
-            self.status = False
-            self.newPhase = 'ramp'
-        if self.count > 20:#send kill signal (will be passed back up)
-            return 1
+	return 0
         
 class MissionManager:
     """
