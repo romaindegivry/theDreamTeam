@@ -41,13 +41,20 @@ class PID_controller(object):
         
         
         #change x command depending on z error
-        if abs(self.err_pose[2]) > 0.3:
-            set_V[0]=self.minVel 
-        if np.any(np.abs(set_V) < self.minVel):
-            return set_V - (np.abs(set_V) < self.minVel)*set_V + np.copysign((np.abs(set_V) < self.minVel)*self.minVel,set_V)
-        elif np.any(np.abs(set_V) > self.maxVel):
-            return set_V - (np.abs(set_V) > self.maxVel)*set_V + np.copysign((np.abs(set_V) > self.maxVel)*self.maxVel,set_V)
+        if abs(self.err_pose[2]) > 0.5:
+            set_V[0]=self.minVel
+            print(set_V)
         
+        if np.any(np.abs(set_V) < self.minVel):
+            for i,item in enumerate(set_V):
+                if abs(item)< self.minVel:
+                    set_V[i] = self.minVel*item/float(abs(item))
+                return set_V
+        elif np.any(np.abs(set_V) > self.maxVel):
+            for i,item in enumerate(set_V):
+                if abs(item)> self.maxVel:
+                    set_V[i] = self.maxVel*item/float(abs(item))
+                return set_V
         elif np.any(abs(self.err_pose) < self.absTol):
             return set_V  - (abs(self.err_pose) < self.absTol)*set_V
             

@@ -1,5 +1,5 @@
 import numpy as np
-import time 
+ 
 def negateDict(sensorState):    
     returnDict = {}
     for i,item in sensorState.items():
@@ -52,15 +52,20 @@ class FlightManager(PhaseManager):
         self.target = np.array(target)
         self.count = 0
         self.tol = tol #position tolerance in meters
-        self.newPhase = None
-        self.status = False
-        self.onRamp = False
-        self.onDrop = False
+        self.newPhase  = None
+        self.status    = False
+        self.onRamp    = False
+        self.onDrop    = False
         self.heightMem = None
         
     def update(self,droneState,clockState,**kwargs):
         #if we are steady around the target wait
         rampHeight = (droneState['pos'][2] - droneState['height'])
+        if self.count == 0 and self.name == 'ramp':
+            self.controller.minVel = 0.2
+            self.count += 1
+            print('DEBUG : setting minVel to 0.2',self.target)
+            
         if not self.heightMem == None:
             gradient = -self.heightMem + droneState['height']
             self.heightMem = droneState['height']
@@ -76,9 +81,12 @@ class FlightManager(PhaseManager):
             self.onRamp = True
             
         if self.name == 'fly':
+            self.controller.minVel = 0.
             self.onRamp = False
+            print('DEBUG : in fly',self.target)
         
         if not self.onDrop and self.onRamp and gradient > 0.4:# must be smaller than the tolerance
+            self.controller.minVel = 0.
             self.target[0] = droneState['pos'][0]+0.05
             self.target[1] = 0.
             self.target[2] = 1.5
@@ -158,7 +166,8 @@ class tuneManager(PhaseManager):
         self.status = True
         self.n = 50 #must be even
         self.zarray = np.zeros((self.n,))
-        
+        self.nTunes = 0
+        self.maxTunes = 1
         
     def update(self,droneState,clockState,**kwargs):
         #counting 
@@ -175,19 +184,18 @@ class tuneManager(PhaseManager):
             freq1 = getMaxFreq(group1,**kwargs)
             freq2 = getMaxFreq(group2,**kwargs)
             print(freq1,freq2)
-            if abs(freq1 - freq2) < freq1*0.10:
+            if abs(freq1 - freq2) < freq2*0.1:
                 #average the values
                 freq = (freq1 + freq2)/2.
                 Kp = self.controller.k_p[2]
                 self.controller.k_p[2] *= 0.5
                 self.controller.k_d[2] = 0.01*Kp
                 self.controller.k_i[2] = 0.01*Kp
-                print('debug: new gains set')
             else:
-                self.controller.k_p[2] *= 0.5
-                self.controller.k_d[2] = -0.1
-                self.controller.k_i[2] = -0.1
-                print('debug: no gains set')
+                self.controller.k_p[2] *= 0.25
+                self.controller.k_d[2] = -0.01
+                self.controller.k_i[2] = -0.01
+                print('debug: no gains set',self.nTunes)
             
             #pass the controller back
             self.controller.reset(clockState)
@@ -206,7 +214,9 @@ class safeMode(PhaseManager): #for safemode
         self.newPhase = None
     def update(self,droneState,clockState,**kwargs):
 	return 0
-        
+
+
+
 class MissionManager:
     """
     In charge of switching model states

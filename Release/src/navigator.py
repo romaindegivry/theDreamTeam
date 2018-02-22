@@ -215,7 +215,7 @@ def main(logger):
     #Initialize the mission manager:
     manager = helpers.MissionManager(lambda _: rospy.signal_shutdown("Mission End"))
 
-    PID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-4],k_i = [0,-0.1,0],k_d = [-0.2,-0.2,0],maxVel = 0.5,minVel = 0.0)
+    PID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-3],k_i = [0,-0.01,0],k_d = [-0.02,-0.02,0],maxVel = 0.5,minVel = 0.0)
 
     start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)
     tuning = helpers.tuneManager('tune',[0.,0.,1.5],**nodeState)
