@@ -39,6 +39,10 @@ class PID_controller(object):
         set_V = np.zeros((3,))
         set_V = self.k_p*self.err_pose+self.k_i*self.err_accul-self.k_d*self.derivative
         
+        
+        #change x command depending on z error
+        if abs(self.err_pose[2]) > 0.3:
+            set_V[0]=self.minVel 
         if np.any(np.abs(set_V) < self.minVel):
             return set_V - (np.abs(set_V) < self.minVel)*set_V + np.copysign((np.abs(set_V) < self.minVel)*self.minVel,set_V)
         elif np.any(np.abs(set_V) > self.maxVel):

@@ -1,5 +1,5 @@
 import numpy as np
-
+import time 
 def negateDict(sensorState):    
     returnDict = {}
     for i,item in sensorState.items():
@@ -71,7 +71,7 @@ class FlightManager(PhaseManager):
         print('gradient',gradient)
 
         
-        if gradient < -0.3 and not self.onRamp:#detect the ramp
+        if gradient < 0.3 and not self.onRamp:#detect the ramp
             print('DEBUG : detected ramp')
             self.onRamp = True
             
@@ -79,7 +79,7 @@ class FlightManager(PhaseManager):
             self.onRamp = False
         
         if not self.onDrop and self.onRamp and gradient > 0.4:# must be smaller than the tolerance
-            self.target = droneState['pos']
+            self.target[0] = droneState['pos'][0]+0.05
             self.target[1] = 0.
             self.target[2] = 1.5
             self.controller.reset(clockState)
@@ -131,16 +131,22 @@ class takeOffManager(PhaseManager): #for taking off
     def update(self,droneState,clockState,**kwargs):
         print('updating', self.count)
         #if we are steady around the target wait
-        
-        if all(np.abs(droneState['pos'] -self.target) < 0.2) and all(np.abs(droneState['velLinear']<0.1)):
-            self.count += 1
-            
 
-        if self.count>1: #wait one second
+        if droneState['pos'][2] > 1.45: #wait one second
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'tune'
         return 0
+
+def getMaxFreq(npArray,**kwargs):
+    transform = np.fft.fft(npArray-np.average(npArray))
+    n =len(npArray)
+    #frequency range
+    freq = kwargs['rate']*np.arange(n)/(2*float(n))
+    amps = np.absolute(transform)
+    pos = np.where(amps==max(amps))
+    return freq[pos][0]
+    
 
 class tuneManager(PhaseManager):
     def __init__(self,name,target,tol = 0.1,**kwargs):
@@ -150,10 +156,40 @@ class tuneManager(PhaseManager):
         self.tol = tol #position tolerance in meters
         self.newPhase = None
         self.status = True
+        self.n = 50 #must be even
+        self.zarray = np.zeros((self.n,))
+        
+        
     def update(self,droneState,clockState,**kwargs):
+        #counting 
+        self.zarray[self.count] = droneState['pos'][2]
         self.count += 1
         
-        if self.count > kwargs['rate'] *1:
+        #when the count is over
+        if self.count >= self.n:
+            #first compute the transform
+            group1 = self.zarray[0:self.n/2]
+            group2 = self.zarray[(self.n/2+1):]
+            
+            #get the freqencies
+            freq1 = getMaxFreq(group1,**kwargs)
+            freq2 = getMaxFreq(group2,**kwargs)
+            print(freq1,freq2)
+            if abs(freq1 - freq2) < freq1*0.10:
+                #average the values
+                freq = (freq1 + freq2)/2.
+                Kp = self.controller.k_p[2]
+                self.controller.k_p[2] *= 0.5
+                self.controller.k_d[2] = 0.01*Kp
+                self.controller.k_i[2] = 0.01*Kp
+                print('debug: new gains set')
+            else:
+                self.controller.k_p[2] *= 0.5
+                self.controller.k_d[2] = -0.1
+                self.controller.k_i[2] = -0.1
+                print('debug: no gains set')
+            
+            #pass the controller back
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'ramp'
@@ -252,4 +288,3 @@ def logDict(phase,droneState,clockState,nodeState,sensorState,inVel):
                 'in_y_dot'      : inVel[1]                      ,
                 'in_z_dot'      : inVel[2]                      }
     return result
-
