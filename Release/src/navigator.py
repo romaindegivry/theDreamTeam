@@ -84,7 +84,7 @@ clockState = {'sonar'       :   0.,
 
 #initialize flight state
 global nodeState
-nodeState = {'rate'    :    20      ,#20Hz sampling rate
+nodeState = {'rate'    :    40      ,#20Hz sampling rate
              'logMode' :    True    ,#logging the flight data
              'logFile' :    '../out/flightLog{}.log',#log output path
              'mode'    :    'Exam'  }#Flight mode
@@ -215,11 +215,12 @@ def main(logger):
     #Initialize the mission manager:
     manager = helpers.MissionManager(lambda _: rospy.signal_shutdown("Mission End"))
     
-    Kp = -114.
-    Kd = -2900.
-    Ki = -1.
+    Kp = -2
+    Kd = -0
+    Ki = -0.1
     
-    PID = PID_controller(nodeState['rate'],k_p = [Kp,Kp,Kp],k_i = [0,Ki,Ki],k_d = [Kd,Kd,Kd],maxVel = 10000.,minVel = 0.0)
+    PID = PID_controller(nodeState['rate'],k_p = [Kp,Kp,Kp],k_i = [0,Ki,Ki],k_d = [Kd,Kd,Kd],maxVel = 0.5,minVel = 0.0)
+
     takeoffPID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-4],k_i = [0],k_d = [-0.2531,-0.3125,-0.3125],maxVel = 0.5,minVel = 0.0)
     
     start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)

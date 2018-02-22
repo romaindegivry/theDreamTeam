@@ -170,8 +170,28 @@ class MissionManager:
     def check(self):
         assert(self.segments[self.currentState].status)
 
-
-
+class tuneManager(PhaseManager):
+    def __init__(self,name,target,tol = 0.1,**kwargs):
+        self.name = name
+        self.target = np.array(target)
+        self.count = 0
+        self.tol = tol #position tolerance in meters
+        self.newPhase = None
+        self.status = True
+    def update(self,droneState,clockState,**kwargs):
+        #if we are steady around the target wait
+        print('updating',self.count)
+        if all(np.abs(droneState['pos'] - self.target) < self.tol) and all(np.abs(droneState['velLinear']<0.2)):
+            self.count += 1
+        
+        #if hover has been achieved for 1 second, land
+        if self.count > kwargs['rate'] *1:
+            print('phase must be changed because cout >20')
+            self.controller.reset(clockState)
+            self.status = False
+            self.newPhase = 'land'
+        
+        return 0
 
 def updateState(droneState,sensorState,clockState):
     #add sensor fusion here
@@ -190,10 +210,10 @@ def logDict(phase,droneState,clockState,nodeState,sensorState,inVel):
                 'x'             : droneState['pos'][0]          ,
                 'y'             : droneState['pos'][1]          ,
                 'z'             : droneState['pos'][2]          ,
-                'quat_x'        : droneState['quaternion'][0]         ,
-                'quat_y'        : droneState['quaternion'][1]         ,
-                'quat_z'        : droneState['quaternion'][2]         ,
-                'quat_w'        : droneState['quaternion'][3]         ,
+                'quat_x'        : droneState['quaternion'][0]   ,
+                'quat_y'        : droneState['quaternion'][1]   ,
+                'quat_z'        : droneState['quaternion'][2]   ,
+                'quat_w'        : droneState['quaternion'][3]   ,
                 'time_vel'      : clockState['vel']             ,
                 'x_dot'         : droneState['velLinear'][0]    ,
                 'y_dot'         : droneState['velLinear'][1]    ,
@@ -209,4 +229,4 @@ def logDict(phase,droneState,clockState,nodeState,sensorState,inVel):
                 'in_y_dot'      : inVel[1]                      ,
                 'in_z_dot'      : inVel[2]                      }
     return result
-    
+
