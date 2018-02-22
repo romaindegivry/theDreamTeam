@@ -52,7 +52,7 @@ class PID_controller(object):
         
     def update(self,droneState,clockState,target):
         pos  = droneState['pos']
-        #pos[2] = droneState['height']
+        pos[2] = droneState['height']
         #if self.stepTime == None:
         #    self._dt = (self.steptime - clockState['pose'])*1e-9#time units are [ns]
         #self.stepTime = clockState['pose']

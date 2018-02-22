@@ -84,7 +84,7 @@ clockState = {'sonar'       :   0.,
 
 #initialize flight state
 global nodeState
-nodeState = {'rate'    :    40      ,#20Hz sampling rate
+nodeState = {'rate'    :    20      ,#20Hz sampling rate
              'logMode' :    True    ,#logging the flight data
              'logFile' :    '../out/flightLog{}.log',#log output path
              'mode'    :    'Exam'  }#Flight mode
@@ -224,17 +224,26 @@ def main(logger):
     takeoffPID = PID_controller(nodeState['rate'],k_p = [-0.4,-0.4,-4],k_i = [0],k_d = [-0.2531,-0.3125,-0.3125],maxVel = 0.5,minVel = 0.0)
     
     start = helpers.takeOffManager('takeoff',[0.0,0,1.5],**nodeState)
-    flight = helpers.FlightManager('ramp',1.5,np.array([6.0,0.,1.5]),**nodeState)
+    tuning = helpers.tuneManager('tune',[0.,0.,1.5],**nodeState)
+    ramp = helpers.FlightManager('ramp',1.5,np.array([6.0,0.,1.5]),**nodeState)
+    flight = helpers.FlightManager('fly',1.5,np.array([6.0,0.,1.5]),**nodeState)
     landing = helpers.LandingManager('land',[6.0,0,0.1],**nodeState)
     
-    start.setController(PID)#give some PIDs to the people!
+    #give some PIDs to the people!
+    start.setController(PID)
+    tuning.setController(PID)
+    ramp.setController(PID)
     flight.setController(PID)
     landing.setController(PID)
-    
+
+    #adding segments to the manager
+    manager.addSegment(start)
+    manager.addSegment(tuning)
+    manager.addSegment(ramp)
     manager.addSegment(flight)
     manager.addSegment(landing)
-    manager.addSegment(start)
     
+    #takeoff before anything
     manager.initialSegment('takeoff')
     
     stateManagerInstance.waitForPilotConnection()   #wait for connection to flight controller

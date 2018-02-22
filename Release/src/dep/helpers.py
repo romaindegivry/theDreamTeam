@@ -47,26 +47,56 @@ class PhaseManager:
         return self.controller
 
 class FlightManager(PhaseManager):
-    def __init__(self,name,aboveGround,target,tol = 0.1,**kwargs):
+    def __init__(self,name,aboveGround,target,tol = 0.1,nextPhase = 'land',**kwargs):
         self.name = name
         self.target = np.array(target)
         self.count = 0
         self.tol = tol #position tolerance in meters
         self.newPhase = None
         self.status = False
+        self.onRamp = False
+        self.onDrop = False
+        self.rampHeight = 0
         
     def update(self,droneState,clockState,**kwargs):
         #if we are steady around the target wait
-        print('updating',self.count)
+        rampHeight = abs(droneState['pos'][2] - droneState['height'])
+        print('updating',rampHeight)
+
+        
+        if rampHeight > 0.35 and not self.onRamp:#detect the ramp
+            print('DEBUG : detected ramp')
+            self.onRamp = True
+            
+        if self.name == 'fly':
+            self.onRamp = False
+
+        if self.onRamp and self.rampHeight < rampHeight :#update the ramp height
+            print('updating rampHeight')
+            self.rampHeight = rampHeight
+        
+        if not self.onDrop and self.onRamp and rampHeight < 0.15 and self.rampHeight*0.8>rampHeight:# must be smaller than the tolerance
+            self.target = droneState['pos']
+            self.target[1] = 0.
+            self.target[2] = 1.5
+            self.controller.reset(clockState)
+            self.onDrop = True
+            print('DEBUG : detected drop',self.target)
+
+        
         if all(np.abs(droneState['pos'] - self.target) < self.tol) and all(np.abs(droneState['velLinear']<0.2)):
             self.count += 1
         
         #if hover has been achieved for 1 second, land
-        if self.count > kwargs['rate'] *1:
+        if not self.onDrop and self.count > kwargs['rate']*1:
             print('phase must be changed because cout >20')
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'land'
+        elif self.onDrop and self.count > 1:
+            self.controller.reset(clockState)
+            self.status = False
+            self.newPhase = 'fly'
         
         return 0
 
@@ -98,15 +128,35 @@ class takeOffManager(PhaseManager): #for taking off
     def update(self,droneState,clockState,**kwargs):
         print('updating', self.count)
         #if we are steady around the target wait
-        if all(np.abs(droneState['pos'] -self.target) < 0.1):
+        
+        if all(np.abs(droneState['pos'] -self.target) < 0.1) and all(np.abs(droneState['velLinear']<0.1)):
             self.count += 1
             
 
-        if self.count > kwargs['rate']*1: #wait one second
+        if self.count >kwargs['rate']*1/2: #wait one second
+            self.controller.reset(clockState)
+            self.status = False
+            self.newPhase = 'tune'
+        return 0
+
+class tuneManager(PhaseManager):
+    def __init__(self,name,target,tol = 0.1,**kwargs):
+        self.name = name
+        self.target = np.array(target)
+        self.count = 0
+        self.tol = tol #position tolerance in meters
+        self.newPhase = None
+        self.status = True
+    def update(self,droneState,clockState,**kwargs):
+        self.count += 1
+        
+        if self.count > kwargs['rate'] *1:
             self.controller.reset(clockState)
             self.status = False
             self.newPhase = 'ramp'
+        
         return 0
+
 
 class safeMode(PhaseManager): #for safemode
     def __init__(self,name,**kwargs):
@@ -125,7 +175,6 @@ class safeMode(PhaseManager): #for safemode
             self.newPhase = 'ramp'
         if self.count > 20:#send kill signal (will be passed back up)
             return 1
-        
         
 class MissionManager:
     """
@@ -170,28 +219,7 @@ class MissionManager:
     def check(self):
         assert(self.segments[self.currentState].status)
 
-class tuneManager(PhaseManager):
-    def __init__(self,name,target,tol = 0.1,**kwargs):
-        self.name = name
-        self.target = np.array(target)
-        self.count = 0
-        self.tol = tol #position tolerance in meters
-        self.newPhase = None
-        self.status = True
-    def update(self,droneState,clockState,**kwargs):
-        #if we are steady around the target wait
-        print('updating',self.count)
-        if all(np.abs(droneState['pos'] - self.target) < self.tol) and all(np.abs(droneState['velLinear']<0.2)):
-            self.count += 1
-        
-        #if hover has been achieved for 1 second, land
-        if self.count > kwargs['rate'] *1:
-            print('phase must be changed because cout >20')
-            self.controller.reset(clockState)
-            self.status = False
-            self.newPhase = 'land'
-        
-        return 0
+
 
 def updateState(droneState,sensorState,clockState):
     #add sensor fusion here
