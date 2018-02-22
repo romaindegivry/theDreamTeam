@@ -171,9 +171,6 @@ class MissionManager:
         assert(self.segments[self.currentState].status)
 
 
-class StateUpdate:
-    def __init__(self):
-        
 
 
 def updateState(droneState,sensorState,clockState):
@@ -183,7 +180,8 @@ def updateState(droneState,sensorState,clockState):
     droneState['quaternion'] = sensorState['quatPose']
     droneState['velLinear'] = sensorState['linearVel']
     droneState['velAngular'] = sensorState['angularVel']
-    
+
+
 def logDict(phase,droneState,clockState,nodeState,sensorState,inVel):
     result = {  'phase'         : phase                         ,
                 'time_sonar'    : clockState['sonar']           ,
